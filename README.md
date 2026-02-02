@@ -11,7 +11,7 @@ A stateful conversational AI application built with [LangGraph](https://langchai
 
 ## File Structure
 ```
-d:/model-deployment/langgraph_chatbot/
+chatbot-langgraph/
 ├── chatbot.db              # SQLite database for storing thread state and metadata
 ├── langgraph_backend.py    # Backend logic: LangGraph definition, DB operations, Title generation
 ├── requirements.txt        # Python dependencies
