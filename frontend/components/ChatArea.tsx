@@ -4,7 +4,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useChatStore } from '@/lib/store';
 import { streamChat, getThreads } from '@/lib/api-client';
-import { Message as MessageType } from '@/lib/types';
 import Message from './Message';
 import ToolStatus from './ToolStatus';
 

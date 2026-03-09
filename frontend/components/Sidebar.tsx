@@ -1,7 +1,7 @@
 /** Sidebar component showing thread list. */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useChatStore } from '@/lib/store';
 import { getThreads, createThread, deleteThread, renameThread } from '@/lib/api-client';
 
@@ -21,20 +21,20 @@ export default function Sidebar() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
 
-  useEffect(() => {
-    loadThreads();
-  }, []);
-
-  async function loadThreads() {
+  const loadThreads = useCallback(async () => {
     try {
       const threadList = await getThreads();
       setThreads(threadList);
     } catch (err) {
       console.error('Failed to load threads:', err);
     }
-  }
+  }, [setThreads]);
 
-  async function handleCreateThread() {
+  useEffect(() => {
+    loadThreads();
+  }, [loadThreads]);
+
+  const handleCreateThread = async () => {
     setIsCreating(true);
     try {
       const thread = await createThread('New Chat');
