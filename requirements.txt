@@ -12,7 +12,8 @@ python-dotenv
 
 streamlit
 
-langchain-checkpoint-sqlite
+langgraph-checkpoint-sqlite
+
 ddgs
 requests
 faiss-cpu
@@ -20,3 +21,9 @@ faiss-cpu
 structlog
 
 pypdf
+
+# FastAPI
+fastapi
+uvicorn[standard]
+python-multipart
+sse-starlette

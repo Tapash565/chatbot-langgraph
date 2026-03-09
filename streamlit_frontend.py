@@ -81,14 +81,14 @@ with st.sidebar:
         )
         _s_col, _c_col = st.columns(2)
         with _s_col:
-            if st.button("💾 Save", use_container_width=True, key="save_name"):
+            if st.button("Save", use_container_width=True, key="save_name"):
                 name_to_save = new_name_input.strip() or "Untitled Chat"
                 rename_thread(thread_key, name_to_save)
                 st.session_state["chat_name"] = name_to_save
                 st.session_state["editing_name"] = False
                 st.rerun()
         with _c_col:
-            if st.button("✖ Cancel", use_container_width=True, key="cancel_name"):
+            if st.button("Cancel", use_container_width=True, key="cancel_name"):
                 st.session_state["editing_name"] = False
                 st.rerun()
     else:
@@ -96,18 +96,18 @@ with st.sidebar:
         with _n_col:
             st.markdown(f"**{st.session_state.get('chat_name', 'Untitled Chat')}**")
         with _e_col:
-            if st.button("✏️", key="edit_name", help="Rename this chat"):
+            if st.button("Edit", key="edit_name", help="Rename this chat"):
                 st.session_state["editing_name"] = True
                 st.rerun()
 
     # New Chat and Delete buttons
     _col_new, _col_del = st.columns(2)
     with _col_new:
-        if st.button("➕ New Chat", use_container_width=True):
+        if st.button("New Chat", use_container_width=True):
             reset_chat()
             st.rerun()
     with _col_del:
-        if st.button("🗑️ Delete", use_container_width=True, help="Delete current chat and its indexed document"):
+        if st.button("Delete", use_container_width=True, help="Delete current chat and its indexed document"):
             delete_thread(thread_key)
             st.session_state["ingested_docs"].pop(thread_key, None)
             reset_chat()
@@ -129,7 +129,7 @@ with st.sidebar:
                 if st.button(tname, key=f"side-thread-{tid}", use_container_width=True):
                     selected_thread = tid
             with _d_col:
-                if st.button("🗑️", key=f"del-thread-{tid}", help=f"Delete '{tname}'"):
+                if st.button("X", key=f"del-thread-{tid}", help=f"Delete '{tname}'"):
                     delete_thread(tid)
                     st.session_state["ingested_docs"].pop(tid, None)
                     if tid in st.session_state["chat_threads"]:
@@ -145,8 +145,8 @@ st.title(st.session_state.get("chat_name", "Untitled Chat"))
 if thread_docs:
     latest_doc = list(thread_docs.values())[-1]
     st.caption(
-        f"📄 `{latest_doc.get('filename')}` — "
-        f"{latest_doc.get('chunks')} chunks · {latest_doc.get('documents')} pages"
+        f" `{latest_doc.get('filename')}` - "
+        f"{latest_doc.get('chunks')} chunks | {latest_doc.get('documents')} pages"
     )
 
 # Chat messages
@@ -154,31 +154,35 @@ for message in st.session_state["message_history"]:
     with st.chat_message(message["role"]):
         st.text(message["content"])
 
-# PDF attachment — ChatGPT-style, in the main area above the input
-with st.expander("📎 Attach a PDF"):
-    uploaded_pdf = st.file_uploader("Upload a PDF", type=["pdf"], label_visibility="collapsed")
-    if uploaded_pdf:
-        if uploaded_pdf.name in thread_docs:
-            st.info(f"`{uploaded_pdf.name}` is already indexed for this chat.")
-        else:
-            with st.status("Indexing PDF…", expanded=True) as status_box:
-                try:
-                    summary = ingest_pdf(
-                        uploaded_pdf.getvalue(),
-                        thread_id=thread_key,
-                        filename=uploaded_pdf.name,
-                    )
-                    thread_docs[uploaded_pdf.name] = summary
-                    status_box.update(label="✅ PDF indexed", state="complete", expanded=False)
-                    st.rerun()
-                except ValueError as e:
-                    status_box.update(label=f"❌ Error: {str(e)}", state="error", expanded=False)
-                    st.error(f"Failed to process PDF: {str(e)}")
-                except Exception as e:
-                    status_box.update(label="❌ Indexing failed", state="error", expanded=False)
-                    st.error(f"Unexpected error: {str(e)}")
-
-user_input = st.chat_input("Ask about your document or use tools")
+# Custom chat input container with PDF attachment
+input_container = st.container()
+with input_container:
+    col1, col2 = st.columns([5, 1])
+    with col1:
+        user_input = st.chat_input("Ask about your document or use tools", key="main_input")
+    with col2:
+        with st.popover("Attach PDF"):
+            uploaded_pdf = st.file_uploader("Upload PDF", type=["pdf"], label_visibility="collapsed", key="pdf_uploader")
+            if uploaded_pdf:
+                if uploaded_pdf.name in thread_docs:
+                    st.info(f"`{uploaded_pdf.name}` is already indexed.")
+                else:
+                    with st.status("Indexing PDF...", expanded=True) as status_box:
+                        try:
+                            summary = ingest_pdf(
+                                uploaded_pdf.getvalue(),
+                                thread_id=thread_key,
+                                filename=uploaded_pdf.name,
+                            )
+                            thread_docs[uploaded_pdf.name] = summary
+                            status_box.update(label="PDF indexed", state="complete", expanded=False)
+                            st.rerun()
+                        except ValueError as e:
+                            status_box.update(label=f"Error: {str(e)}", state="error", expanded=False)
+                            st.error(f"Failed: {str(e)}")
+                        except Exception as e:
+                            status_box.update(label="Indexing failed", state="error", expanded=False)
+                            st.error(f"Error: {str(e)}")
 
 if user_input:
     st.session_state["message_history"].append({"role": "user", "content": user_input})
@@ -204,11 +208,11 @@ if user_input:
                     tool_name = getattr(message_chunk, "name", "tool")
                     if status_holder["box"] is None:
                         status_holder["box"] = st.status(
-                            f"🔧 Using `{tool_name}` …", expanded=True
+                            f"Using {tool_name}...", expanded=True
                         )
                     else:
                         status_holder["box"].update(
-                            label=f"🔧 Using `{tool_name}` …",
+                            label=f"Using {tool_name}...",
                             state="running",
                             expanded=True,
                         )
@@ -220,7 +224,7 @@ if user_input:
 
         if status_holder["box"] is not None:
             status_holder["box"].update(
-                label="✅ Tool finished", state="complete", expanded=False
+                label="Tool finished", state="complete", expanded=False
             )
 
     st.session_state["message_history"].append(

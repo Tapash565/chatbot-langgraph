@@ -3,7 +3,7 @@ from typing import TypedDict, Annotated, Any, Dict, Optional
 from langchain_groq import ChatGroq
 from langchain_core.messages import BaseMessage, SystemMessage
 from langgraph.graph.message import add_messages
-from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from langchain_core.tools import tool
 from dotenv import load_dotenv
 import shutil
@@ -307,7 +307,7 @@ tool_node = ToolNode(tools)
 
 conn = sqlite3.connect(database='chatbot.db', check_same_thread=False)
 # Checkpointer
-checkpointer = SqliteSaver(conn=conn)
+checkpointer = AsyncSqliteSaver(conn=conn)
 
 graph = StateGraph(ChatState)
 graph.add_node("chat_node", chat_node)
@@ -377,7 +377,7 @@ def restore_faiss_indices():
 init_db()
 restore_faiss_indices()
 
-def update_thread(thread_id, name=None):
+async def update_thread(thread_id, name=None):
     cursor = conn.cursor()
     if name:
         cursor.execute('''
@@ -393,23 +393,16 @@ def update_thread(thread_id, name=None):
         ''', (thread_id, "Untitled Chat"))
     conn.commit()
 
-def get_sorted_threads():
+async def get_sorted_threads():
     cursor = conn.cursor()
-    # Backfill if needed (simple check)
-    all_checkpoints = set()
-    for c in checkpointer.list(None):
-        all_checkpoints.add(c.config['configurable']['thread_id'])
-    
-    for tid in all_checkpoints:
-        cursor.execute("SELECT 1 FROM thread_metadata WHERE thread_id = ?", (tid,))
-        if not cursor.fetchone():
-            update_thread(tid)
-            
+
+    # Get threads directly from metadata table
     cursor.execute("SELECT thread_id, name FROM thread_metadata ORDER BY last_active DESC")
     return [{'id': row[0], 'name': row[1]} for row in cursor.fetchall()]
 
-def generate_title(thread_id):
-    messages = chatbot.get_state(config={'configurable': {'thread_id': thread_id}}).values.get('messages', [])
+async def generate_title(thread_id):
+    state = await chatbot.aget_state(config={'configurable': {'thread_id': thread_id}})
+    messages = state.values.get('messages', [])
     if not messages:
         return
     
@@ -425,9 +418,9 @@ def generate_title(thread_id):
     prompt = f"Generate a short, 3-5 word title for this conversation summary. Do not use quotes:\n\n{conversation_text}"
     
     try:
-        response = llm.invoke(prompt)
+        response = await llm.ainvoke(prompt)
         title = response.content.strip().replace('"', '')
-        update_thread(thread_id, name=title)
+        await update_thread(thread_id, name=title)
     except Exception as e:
         print(f"Title Gen Error: {e}")
 
@@ -476,8 +469,10 @@ def rename_thread(thread_id: str, name: str) -> None:
 
 def retrieve_all_threads():
     all_threads = set()
-    for checkpoint in checkpointer.list(None):
-        all_threads.add(checkpoint.config["configurable"]["thread_id"])
+    cursor = conn.cursor()
+    cursor.execute("SELECT thread_id FROM thread_metadata")
+    for row in cursor.fetchall():
+        all_threads.add(row[0])
     return list(all_threads)
 
 
