@@ -214,3 +214,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# FAISS vector indices
+faiss_indices/
+
+# SQLite databases
+chatbot.db
+chatbot.db-*
+
+# Claude Code
+.claude/
+CLAUDE.md

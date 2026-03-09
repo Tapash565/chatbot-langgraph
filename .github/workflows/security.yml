@@ -1,0 +1,42 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly scan
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Check for secrets in code
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+
+      - name: Run safety check
+        run: |
+          pip install safety
+          safety check || true
+
+      - name: Run bandit security scan
+        run: |
+          pip install bandit
+          bandit -r . -x ./tests,./.git --severity-level medium || true
+
+      - name: Check dependencies for vulnerabilities
+        uses: pyupio/safety@main
+        with:
+          db: online
+          key: ${{ secrets.SAFETY_API_KEY }}

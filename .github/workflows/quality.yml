@@ -1,0 +1,40 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install linting tools
+        run: |
+          pip install ruff black isort
+
+      - name: Check formatting with Black
+        run: |
+          black --check . || true
+
+      - name: Check import order with isort
+        run: |
+          isort --check-only --diff . || true
+
+      - name: Run Ruff linter
+        run: |
+          ruff check . --ignore E501 || true
+
+      - name: Check typing with mypy
+        run: |
+          pip install mypy types-requests types-python-dateutil
+          mypy langgraph_backend.py --ignore-missing-imports || true
