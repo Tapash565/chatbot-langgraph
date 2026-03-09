@@ -14,7 +14,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+/lib/
 lib64/
 parts/
 sdist/
@@ -243,3 +243,6 @@ frontend/build/
 .env.*.local
 
 .vscode/
+
+!/frontend/lib/
+!/frontend/lib/**
