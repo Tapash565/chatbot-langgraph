@@ -4,6 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useChatStore } from '@/lib/store';
 import { getThreads, createThread, deleteThread, renameThread } from '@/lib/api-client';
+import type { Thread } from '@/lib/types';
 
 export default function Sidebar() {
   const {
@@ -90,7 +91,7 @@ export default function Sidebar() {
       </div>
 
       <div className="flex-1 overflow-y-auto p-2">
-        {threads.map((thread) => (
+        {threads.map((thread: Thread) => (
           <div
             key={thread.id}
             onClick={() => {

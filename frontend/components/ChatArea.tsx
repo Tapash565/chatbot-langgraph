@@ -4,6 +4,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useChatStore } from '@/lib/store';
 import { streamChat, getThreads } from '@/lib/api-client';
+import type { Message as MessageType } from '@/lib/types';
 import Message from './Message';
 import ToolStatus from './ToolStatus';
 
@@ -113,7 +114,7 @@ export default function ChatArea() {
           </div>
         ) : (
           <>
-            {messages.map((msg) => (
+            {messages.map((msg: MessageType) => (
               <Message key={msg.id} message={msg} />
             ))}
             <ToolStatus />
