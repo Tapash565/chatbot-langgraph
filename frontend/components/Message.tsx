@@ -1,5 +1,5 @@
 /** Message component for displaying individual messages. */
-import { Message } from '@/lib/types';
+import type { Message } from '@/lib/types';
 
 interface MessageProps {
   message: Message;
