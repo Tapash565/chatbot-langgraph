@@ -1,6 +1,5 @@
 """Utility functions."""
 import uuid
-from typing import Optional
 
 
 def generate_thread_id() -> str:

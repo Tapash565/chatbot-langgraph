@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, develop]
     paths:
-      - 'api/**'
+      - 'backend/**'
       - 'langgraph_backend.py'
       - 'observability/**'
       - 'requirements.txt'
@@ -13,7 +13,7 @@ on:
   pull_request:
     branches: [main, develop]
     paths:
-      - 'api/**'
+      - 'backend/**'
       - 'langgraph_backend.py'
       - 'observability/**'
       - 'requirements.txt'
@@ -40,21 +40,21 @@ jobs:
           pip install -r requirements.txt
 
       - name: Check Python syntax
-        run: python -m py_compile langgraph_backend.py api/main.py api/router.py api/schemas.py
+        run: python -m compileall backend observability langgraph_backend.py
 
       - name: Verify imports
         run: |
-          python -c "import langgraph_backend; from api.main import app; print('Imports OK')"
+          python -c "from backend.main import app; from backend.tools.calculator import calculator; print('Imports OK')"
 
       - name: Run linter
         run: |
           pip install flake8
-          flake8 langgraph_backend.py api/ --max-line-length=100 --ignore=E501,W503
+          flake8 backend/ observability/ --max-line-length=100 --ignore=E501,W503
 
       - name: Run security scan
         run: |
           pip install bandit
-          bandit -r langgraph_backend.py api/ -f json | tee bandit-report.json || true
+          bandit -r backend/ observability/ -f json | tee bandit-report.json || true
 
   test:
     runs-on: ubuntu-latest
@@ -83,7 +83,7 @@ jobs:
       - name: Run tests
         run: |
           pip install pytest pytest-asyncio
-          pytest -v || echo "No tests found"
+          pytest -v
 
   deploy:
     runs-on: ubuntu-latest

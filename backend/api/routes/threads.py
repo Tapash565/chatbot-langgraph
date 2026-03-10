@@ -1,6 +1,5 @@
 """Thread API routes."""
-from typing import List
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request
 
 from backend.models import ThreadCreate, ThreadUpdate, ThreadResponse, ThreadListResponse
 from backend.services.thread_service import ThreadService

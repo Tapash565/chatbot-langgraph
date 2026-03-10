@@ -14,7 +14,7 @@ import json
 import uuid
 import contextvars
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Optional
 from contextlib import contextmanager
 
 # Context variable for correlation ID (thread-safe)

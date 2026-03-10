@@ -1,9 +1,7 @@
 """Document API routes."""
-import uuid
 from fastapi import APIRouter, UploadFile, File, Form, Request, HTTPException
 
 from backend.models import DocumentUploadResponse
-from backend.services.document_service import get_document_service
 from backend.core.logging import get_logger
 
 logger = get_logger(__name__)

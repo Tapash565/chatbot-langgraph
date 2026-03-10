@@ -1,6 +1,5 @@
 """Document service - business logic for document operations."""
 from typing import Optional
-import io
 
 from backend.tools.rag_tool import ingest_pdf
 from backend.retrieval.retriever import thread_retriever
@@ -66,9 +65,6 @@ class DocumentService:
 
     async def get_document_metadata(self, thread_id: str) -> Optional[dict]:
         """Get document metadata for a thread."""
-        # Check memory first
-        from backend.retrieval.retriever import thread_retriever
-
         if thread_retriever.has_retriever(thread_id):
             doc = thread_repository.get_document_metadata(thread_id)
             if doc:

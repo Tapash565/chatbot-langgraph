@@ -1,9 +1,5 @@
 """Retriever for document search."""
-from typing import List, Dict, Any, Optional
-from langchain_core.retrievers import BaseRetriever
-from langchain_core.callbacks import CallbackManagerForRetrieverRun
-from langchain_core.documents import Document
-from langchain_community.vectorstores import FAISS
+from typing import Dict, Any, Optional
 
 from backend.retrieval.vector_store import vector_store_manager
 from backend.core.logging import get_logger

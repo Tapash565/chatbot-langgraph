@@ -1,6 +1,6 @@
 """Chat node for the LangGraph agent."""
 import time
-from typing import TypedDict, Annotated, Any, Optional
+from typing import TypedDict, Annotated
 from langchain_core.messages import BaseMessage, SystemMessage
 from langgraph.graph.message import add_messages
 

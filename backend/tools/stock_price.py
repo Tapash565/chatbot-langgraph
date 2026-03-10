@@ -1,5 +1,4 @@
 """Stock price tool using Alpha Vantage."""
-import os
 import requests
 import time
 from langchain_core.tools import tool

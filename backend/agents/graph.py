@@ -6,7 +6,6 @@ from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
 from backend.agents.nodes import ChatState, create_chat_node
 from backend.agents.router import route_tools
-from backend.agents.prompts import get_system_prompt
 from backend.tools import tools
 from backend.core.logging import get_logger
 from backend.db.session import db_session

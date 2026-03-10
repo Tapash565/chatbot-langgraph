@@ -1,5 +1,4 @@
 """Calculator tool."""
-from typing import Union
 from langchain_core.tools import tool
 
 from backend.core.logging import get_logger, log_span

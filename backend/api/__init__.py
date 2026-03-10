@@ -1,4 +1,3 @@
-"""Backend API."""
-from backend.api.main import app
+"""Backend API package."""
 
-__all__ = ["app"]
+__all__: list[str] = []

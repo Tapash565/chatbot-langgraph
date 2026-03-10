@@ -1,14 +1,14 @@
-[tool:pytest]
-testpaths = tests
-python_files = test_*.py
-python_classes = Test*
-python_functions = test_*
-addopts = -v --tb=short
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
 
-[flake8]
+[tool.flake8]
 max-line-length = 100
-exclude = .git,__pycache__,venv,.venv,faiss_indices
+exclude = [".git", "__pycache__", "venv", ".venv", "faiss_indices"]
 
-[bandit]
-exclude = tests,.git
-severity_level = medium
+[tool.bandit]
+exclude_dirs = ["tests", ".git"]
+severity = "medium"
