@@ -10,7 +10,7 @@ A stateful conversational AI application built with [LangGraph](https://langchai
 *   **Chat Management**: Ability to create new chats and delete all chat history.
 
 ## File Structure
-```
+```text
 chatbot-langgraph/
 ├── chatbot.db              # SQLite database for storing thread state and metadata
 ├── langgraph_backend.py    # Backend logic: LangGraph definition, DB operations, Title generation

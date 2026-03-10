@@ -14,7 +14,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+/lib/
 lib64/
 parts/
 sdist/
@@ -214,3 +214,35 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# FAISS vector indices
+faiss_indices/
+
+# SQLite databases
+chatbot.db
+chatbot.db-*
+
+# SQLite WAL/SHM journal files
+*.db-shm
+*.db-wal
+
+# Claude Code
+.claude/
+CLAUDE.md
+
+# Node (root-level)
+node_modules/
+
+# Next.js build output
+frontend/.next/
+frontend/out/
+frontend/build/
+
+# Environment file variants (Next.js conventions)
+.env.local
+.env.*.local
+
+.vscode/
+
+!/frontend/lib/
+!/frontend/lib/**
