@@ -4,6 +4,18 @@ import { Thread, DocumentMetadata, PDFUploadResponse, StreamEvent, ThreadMessage
 const RAW_API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 const API_BASE = RAW_API_BASE.endsWith('/api') ? RAW_API_BASE : `${RAW_API_BASE}/api`;
 
+function normalizeThread(raw: Record<string, unknown>): Thread {
+  return {
+    id: String(raw.id ?? raw.thread_id ?? ''),
+    name: String(raw.name ?? 'Untitled Chat'),
+    lastActive: typeof raw.lastActive === 'string'
+      ? raw.lastActive
+      : typeof raw.last_active === 'string'
+        ? raw.last_active
+        : undefined,
+  };
+}
+
 /**
  * Stream chat messages using Server-Sent Events.
  */
@@ -61,7 +73,11 @@ export async function getThreads(): Promise<Thread[]> {
     throw new Error(`Failed to fetch threads: ${response.status} ${text}`);
   }
   const data = await response.json();
-  return data.threads;
+  return Array.isArray(data.threads)
+    ? data.threads
+        .map((thread: Record<string, unknown>) => normalizeThread(thread))
+        .filter((thread: Thread) => thread.id.length > 0)
+    : [];
 }
 
 /**
@@ -77,7 +93,7 @@ export async function createThread(name?: string): Promise<Thread> {
     const err = await response.json().catch(() => ({}));
     throw new Error(`Failed to create thread: ${response.status} ${err.detail || response.statusText}`);
   }
-  return response.json();
+  return normalizeThread(await response.json() as Record<string, unknown>);
 }
 
 /**
@@ -106,7 +122,7 @@ export async function renameThread(threadId: string, name: string): Promise<Thre
     const err = await response.json().catch(() => ({}));
     throw new Error(`Failed to rename thread: ${response.status} ${err.detail || response.statusText}`);
   }
-  return response.json();
+  return normalizeThread(await response.json() as Record<string, unknown>);
 }
 
 /**

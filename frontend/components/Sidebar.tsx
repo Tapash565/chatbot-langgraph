@@ -26,17 +26,27 @@ export default function Sidebar() {
   const loadThreads = useCallback(async () => {
     try {
       const threadList = await getThreads();
-      setThreads(threadList);
+      if (threadList.length > 0) {
+        setThreads(threadList);
+        if (!currentThreadId) {
+          setCurrentThreadId(threadList[0].id);
+        }
+      } else if (!currentThreadId && !isCreating) {
+        const thread = await createThread('New Chat');
+        setThreads([thread]);
+        setCurrentThreadId(thread.id);
+        clearMessages();
+      }
     } catch (err) {
       console.error('Failed to load threads:', err);
     }
-  }, [setThreads]);
+  }, [clearMessages, currentThreadId, isCreating, setCurrentThreadId, setThreads]);
 
   useEffect(() => {
     loadThreads();
   }, [loadThreads]);
 
-  const handleCreateThread = async () => {
+  const handleCreateThread = useCallback(async () => {
     setIsCreating(true);
     try {
       const thread = await createThread('New Chat');
@@ -47,7 +57,7 @@ export default function Sidebar() {
       console.error('Failed to create thread:', err);
     }
     setIsCreating(false);
-  }
+  }, [addThread, clearMessages, setCurrentThreadId]);
 
   async function handleDeleteThread(e: React.MouseEvent, id: string) {
     e.stopPropagation();

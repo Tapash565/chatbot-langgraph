@@ -10,7 +10,6 @@ tools = [
     calculator,
     get_stock_price,
     rag_tool,
-    ingest_pdf,
 ]
 
 __all__ = [

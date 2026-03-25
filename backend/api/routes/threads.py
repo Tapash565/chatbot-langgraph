@@ -15,7 +15,7 @@ def get_thread_service(request: Request) -> ThreadService:
     return request.app.state.thread_service
 
 
-@router.get("/threads", response_model=ThreadListResponse)
+@router.get("/threads", response_model=ThreadListResponse, response_model_by_alias=False)
 async def get_threads(request: Request) -> ThreadListResponse:
     """Get all threads sorted by last active."""
     thread_service = get_thread_service(request)
@@ -23,7 +23,7 @@ async def get_threads(request: Request) -> ThreadListResponse:
     return ThreadListResponse(threads=threads)
 
 
-@router.post("/threads", response_model=ThreadResponse)
+@router.post("/threads", response_model=ThreadResponse, response_model_by_alias=False)
 async def create_thread(body: ThreadCreate, request: Request) -> ThreadResponse:
     """Create a new thread."""
     thread_service = get_thread_service(request)
@@ -31,7 +31,7 @@ async def create_thread(body: ThreadCreate, request: Request) -> ThreadResponse:
     return ThreadResponse(**thread)
 
 
-@router.put("/threads/{thread_id}", response_model=ThreadResponse)
+@router.put("/threads/{thread_id}", response_model=ThreadResponse, response_model_by_alias=False)
 async def rename_thread(
     thread_id: str,
     body: ThreadUpdate,

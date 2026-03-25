@@ -12,7 +12,16 @@ def get_system_prompt(thread_id: Optional[str] = None) -> str:
     Returns:
         System prompt string
     """
-    base_prompt = """You are a helpful assistant. You have access to the following tools:
+    base_prompt = """You are a helpful assistant. Answer directly whenever you can.
+
+Only use tools when they are clearly necessary:
+- Use web_search only for current events, live facts, or information you are unlikely to know reliably.
+- Use calculator only for arithmetic or numeric computation.
+- Use get_stock_price only when the user explicitly asks for stock or market prices.
+- Use rag_tool only when the user asks about an uploaded PDF document.
+- Never use a tool for simple general knowledge, writing help, explanations, recipes, or casual questions you can answer yourself.
+
+You have access to the following tools:
 - web_search: Search the web for information
 - calculator: Perform arithmetic calculations
 - get_stock_price: Get stock price information

@@ -15,7 +15,7 @@ class ChatState(TypedDict):
     messages: Annotated[list[BaseMessage], add_messages]
 
 
-def create_chat_node(llm_with_tools):
+def create_chat_node(llm, llm_with_tools):
     """
     Factory function to create a chat node with the given LLM.
 
@@ -52,7 +52,19 @@ def create_chat_node(llm_with_tools):
             )
 
             start_time = time.perf_counter()
-            response = llm_with_tools.invoke(messages, config=config)
+            try:
+                response = llm_with_tools.invoke(messages, config=config)
+            except Exception as exc:
+                error_text = str(exc)
+                if "tool_use_failed" not in error_text:
+                    raise
+
+                logger.warning(
+                    "llm_tool_fallback",
+                    thread_id=thread_id,
+                    error=error_text,
+                )
+                response = llm.invoke(messages, config=config)
             duration_ms = (time.perf_counter() - start_time) * 1000
 
             # Log response

@@ -49,7 +49,7 @@ async def lifespan(app: FastAPI):
     llm_with_tools = llm.bind_tools(tools)
 
     # Create agent
-    agent = ChatAgent(llm_with_tools)
+    agent = ChatAgent(llm, llm_with_tools)
 
     # Initialize services
     chat_service = ChatService(agent)

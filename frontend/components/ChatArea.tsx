@@ -3,7 +3,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useChatStore } from '@/lib/store';
-import { streamChat, getThreads, uploadPDF, getThreadDocument, getThreadMessages } from '@/lib/api-client';
+import { createThread, streamChat, getThreads, uploadPDF, getThreadDocument, getThreadMessages } from '@/lib/api-client';
 import type { Message as MessageType } from '@/lib/types';
 import Message from './Message';
 import ToolStatus from './ToolStatus';
@@ -21,12 +21,18 @@ export default function ChatArea() {
     setThreads,
     document,
     setDocument,
+    setCurrentThreadId,
   } = useChatStore();
 
   const [input, setInput] = useState('');
+  const [mounted, setMounted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -79,7 +85,24 @@ export default function ChatArea() {
 
   async function handleSubmit(e?: React.FormEvent) {
     e?.preventDefault();
-    if (!input.trim() || !currentThreadId || isStreaming) return;
+    if (!input.trim() || isStreaming) return;
+
+    let threadId = currentThreadId;
+    if (!threadId) {
+      try {
+        const thread = await createThread('New Chat');
+        setThreads([thread, ...useChatStore.getState().threads]);
+        setCurrentThreadId(thread.id);
+        threadId = thread.id;
+      } catch (err) {
+        addMessage({
+          id: `thread-create-error-${Date.now()}`,
+          type: 'ai',
+          content: `Failed to start a conversation: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        });
+        return;
+      }
+    }
 
     const userMessage = input.trim();
     setInput('');
@@ -93,7 +116,7 @@ export default function ChatArea() {
     setIsStreaming(true);
 
     try {
-      const generator = streamChat(userMessage, currentThreadId);
+      const generator = streamChat(userMessage, threadId);
 
       for await (const event of generator) {
         if (event.type === 'ai' && event.content) {
@@ -207,55 +230,68 @@ export default function ChatArea() {
 
       {/* Input BAR */}
       <div className="w-full max-w-3xl mx-auto p-4 pb-8">
-        <div className="relative flex flex-col w-full bg-sidebar-bg border border-border rounded-2xl p-1 shadow-sm focus-within:border-gray-500 transition-colors">
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSubmit();
-              }
-            }}
-            placeholder="Message LangGraph AI..."
-            disabled={!currentThreadId || isStreaming}
-            className="w-full px-4 py-3 bg-transparent border-none outline-none text-[15px] resize-none chat-input-textarea placeholder-gray-500"
-            rows={1}
-          />
+        {!mounted ? (
+          <div className="relative flex flex-col w-full bg-sidebar-bg border border-border rounded-2xl p-1 shadow-sm">
+            <textarea
+              value=""
+              readOnly
+              disabled
+              placeholder="Message LangGraph AI..."
+              className="w-full px-4 py-3 bg-transparent border-none outline-none text-[15px] resize-none chat-input-textarea placeholder-gray-500"
+              rows={1}
+            />
+          </div>
+        ) : (
+          <div className="relative flex flex-col w-full bg-sidebar-bg border border-border rounded-2xl p-1 shadow-sm focus-within:border-gray-500 transition-colors">
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit();
+                }
+              }}
+              placeholder="Message LangGraph AI..."
+              disabled={isStreaming}
+              className="w-full px-4 py-3 bg-transparent border-none outline-none text-[15px] resize-none chat-input-textarea placeholder-gray-500"
+              rows={1}
+            />
 
-          <div className="flex items-center justify-between px-2 pb-1">
-            <div className="flex gap-1">
+            <div className="flex items-center justify-between px-2 pb-1">
+              <div className="flex gap-1">
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={!currentThreadId || isStreaming}
+                  className="p-2 text-gray-500 hover:text-foreground hover:bg-sidebar-hover rounded-lg transition-colors disabled:opacity-30"
+                  title="Attach PDF"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.5L8.55 18.45a1.5 1.5 0 11-2.122-2.122L16.485 6.28" />
+                  </svg>
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </div>
+
               <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={!currentThreadId || isStreaming}
-                className="p-2 text-gray-500 hover:text-foreground hover:bg-sidebar-hover rounded-lg transition-colors disabled:opacity-30"
-                title="Attach PDF"
+                onClick={() => handleSubmit()}
+                disabled={isStreaming || !input.trim()}
+                className="p-2 transition-all rounded-lg disabled:opacity-20 bg-accent text-white hover:opacity-90 active:scale-95"
               >
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.5L8.55 18.45a1.5 1.5 0 11-2.122-2.122L16.485 6.28" />
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
                 </svg>
               </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".pdf"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
             </div>
-
-            <button
-              onClick={() => handleSubmit()}
-              disabled={!currentThreadId || isStreaming || !input.trim()}
-              className="p-2 transition-all rounded-lg disabled:opacity-20 bg-accent text-white hover:opacity-90 active:scale-95"
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
-              </svg>
-            </button>
           </div>
-        </div>
+        )}
         <div className="mt-2 text-[10px] text-center text-gray-500">
           AI can make mistakes. Verify important info.
         </div>

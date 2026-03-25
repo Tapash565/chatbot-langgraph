@@ -16,7 +16,8 @@ logger = get_logger(__name__)
 class ChatAgent:
     """LangGraph-based chat agent with persistent state."""
 
-    def __init__(self, llm_with_tools):
+    def __init__(self, llm, llm_with_tools):
+        self.llm = llm
         self.llm_with_tools = llm_with_tools
         self._graph: Optional[StateGraph] = None
         self._checkpointer: Optional[AsyncSqliteSaver] = None
@@ -30,17 +31,22 @@ class ChatAgent:
         return self._graph
 
     @property
-    def checkpointer(self) -> AsyncSqliteSaver:
-        """Get or create the checkpointer."""
-        if self._checkpointer is None:
-            self._checkpointer = AsyncSqliteSaver(conn=db_session.connection)
+    def checkpointer(self) -> Optional[AsyncSqliteSaver]:
+        """Get checkpointer if already initialized."""
         return self._checkpointer
 
-    @property
-    def chatbot(self):
+    async def _get_checkpointer(self) -> AsyncSqliteSaver:
+        """Get or create the async SQLite checkpointer."""
+        if self._checkpointer is None:
+            conn = await db_session.get_async_connection()
+            self._checkpointer = AsyncSqliteSaver(conn=conn)
+        return self._checkpointer
+
+    async def _get_chatbot(self):
         """Get compiled chatbot."""
         if self._chatbot is None:
-            self._chatbot = self.graph.compile(checkpointer=self.checkpointer)
+            checkpointer = await self._get_checkpointer()
+            self._chatbot = self.graph.compile(checkpointer=checkpointer)
         return self._chatbot
 
     def _build_graph(self) -> StateGraph:
@@ -48,7 +54,7 @@ class ChatAgent:
         graph = StateGraph(ChatState)
 
         # Create chat node with bound LLM
-        chat_node = create_chat_node(self.llm_with_tools)
+        chat_node = create_chat_node(self.llm, self.llm_with_tools)
         tool_node = ToolNode(tools)
 
         # Add nodes
@@ -71,13 +77,16 @@ class ChatAgent:
 
     async def aget_state(self, config: dict):
         """Get current state for a thread."""
-        return await self.chatbot.aget_state(config)
+        chatbot = await self._get_chatbot()
+        return await chatbot.aget_state(config)
 
     async def ainvoke(self, input_data: dict, config: dict):
         """Invoke the agent asynchronously."""
-        return await self.chatbot.ainvoke(input_data, config)
+        chatbot = await self._get_chatbot()
+        return await chatbot.ainvoke(input_data, config)
 
     async def astream(self, input_data: dict, config: dict):
         """Stream agent responses."""
-        async for event in self.chatbot.astream(input_data, config):
+        chatbot = await self._get_chatbot()
+        async for event in chatbot.astream(input_data, config):
             yield event

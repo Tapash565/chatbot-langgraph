@@ -1,4 +1,5 @@
 """Thread repository for database operations."""
+import sqlite3
 from typing import List, Optional
 from dataclasses import dataclass
 from datetime import datetime
@@ -105,8 +106,12 @@ class ThreadRepository:
         with db_session.cursor() as cursor:
             cursor.execute("DELETE FROM thread_documents WHERE thread_id = ?", (thread_id,))
             cursor.execute("DELETE FROM thread_metadata WHERE thread_id = ?", (thread_id,))
-            cursor.execute("DELETE FROM checkpoints WHERE thread_id = ?", (thread_id,))
-            cursor.execute("DELETE FROM writes WHERE thread_id = ?", (thread_id,))
+            for table_name in ("checkpoints", "writes"):
+                try:
+                    cursor.execute(f"DELETE FROM {table_name} WHERE thread_id = ?", (thread_id,))
+                except sqlite3.OperationalError as exc:
+                    if "no such table" not in str(exc):
+                        raise
 
     def save_document_metadata(self, doc: ThreadDocument) -> None:
         """Save document metadata for a thread."""

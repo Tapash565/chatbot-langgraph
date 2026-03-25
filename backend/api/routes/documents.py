@@ -20,7 +20,7 @@ def get_document_service_from_request(request: Request):
 @router.post("/pdf/upload", response_model=DocumentUploadResponse)
 async def upload_pdf(
     request: Request,
-    file: UploadFile = File(..., max_length=MAX_PDF_SIZE),
+    file: UploadFile = File(...),
     thread_id: str = Form(...),
 ):
     """
@@ -34,6 +34,8 @@ async def upload_pdf(
 
     # Read file content
     content = await file.read()
+    if len(content) > MAX_PDF_SIZE:
+        raise HTTPException(status_code=400, detail="PDF file is too large (max 10MB)")
 
     document_service = get_document_service_from_request(request)
 
