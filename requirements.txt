@@ -9,6 +9,7 @@ sentence-transformers
 
 langgraph
 python-dotenv
+aiosqlite
 
 langgraph-checkpoint-sqlite
 
