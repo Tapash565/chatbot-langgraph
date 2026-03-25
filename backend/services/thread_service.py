@@ -1,10 +1,14 @@
 """Thread service - business logic for thread operations."""
+import uuid
 from typing import List, Optional
+
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
 from backend.db.repositories import thread_repository
 from backend.retrieval.retriever import thread_retriever
 from backend.memory.thread_state import thread_state_manager
 from backend.core.logging import get_logger
+from backend.agents.graph import ChatAgent
 
 logger = get_logger(__name__)
 
@@ -12,10 +16,15 @@ logger = get_logger(__name__)
 class ThreadService:
     """Service for handling thread operations."""
 
+    def __init__(self, agent: Optional[ChatAgent] = None):
+        self.agent = agent
+
     async def create_thread(self, name: Optional[str] = None) -> dict:
         """Create a new thread."""
+        thread_id = str(uuid.uuid4())
         thread = thread_repository.create_or_update_thread(
-            thread_id=name or "Untitled Chat"
+            thread_id=thread_id,
+            name=name or "New Chat",
         )
         logger.info("thread_created", thread_id=thread.thread_id, name=thread.name)
         return {
@@ -81,3 +90,41 @@ class ThreadService:
                     "chunks": doc.chunks,
                 }
         return {"has_document": False}
+
+    async def get_thread_messages(self, thread_id: str) -> List[dict]:
+        """Get chat messages for a thread in frontend-friendly format."""
+        if not self.agent:
+            return []
+
+        state = await self.agent.aget_state({"configurable": {"thread_id": thread_id}})
+        messages = state.values.get("messages", []) if state else []
+        result: List[dict] = []
+
+        for index, message in enumerate(messages):
+            if isinstance(message, HumanMessage):
+                result.append(
+                    {
+                        "id": f"{thread_id}-user-{index}",
+                        "type": "user",
+                        "content": message.content,
+                    }
+                )
+            elif isinstance(message, AIMessage) and message.content:
+                result.append(
+                    {
+                        "id": f"{thread_id}-ai-{index}",
+                        "type": "ai",
+                        "content": message.content,
+                    }
+                )
+            elif isinstance(message, ToolMessage):
+                result.append(
+                    {
+                        "id": f"{thread_id}-tool-{index}",
+                        "type": "tool",
+                        "content": message.content,
+                        "toolName": getattr(message, "name", "tool"),
+                    }
+                )
+
+        return result

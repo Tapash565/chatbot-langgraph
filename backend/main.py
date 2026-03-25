@@ -1,3 +1,4 @@
+
 """FastAPI application entry point."""
 import uuid
 import time
@@ -5,9 +6,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from langchain_groq import ChatGroq
 
-# Import observability
-from observability.logging_config import get_logger, configure_logging
+from backend.core.logging import get_logger, configure_logging
 
 # Import backend modules
 from backend.core.config import config
@@ -41,8 +42,6 @@ async def lifespan(app: FastAPI):
         logger.warning("faiss_restore_error", error=str(e))
 
     # Initialize LLM and agent
-    from langchain_groq import ChatGroq
-
     llm = ChatGroq(
         model=config.GROQ_MODEL,
         temperature=config.LLM_TEMPERATURE,
@@ -54,7 +53,7 @@ async def lifespan(app: FastAPI):
 
     # Initialize services
     chat_service = ChatService(agent)
-    thread_service = ThreadService()
+    thread_service = ThreadService(agent)
     document_service = get_document_service(agent)
 
     # Store in app state
@@ -81,7 +80,7 @@ app = FastAPI(
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=config.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -137,7 +136,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
     return JSONResponse(
         status_code=500,
-        content={"error": "Internal server error", "detail": str(exc)},
+        content={"error": "Internal server error"},
     )
 
 

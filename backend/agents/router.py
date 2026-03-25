@@ -1,26 +1,11 @@
-"""Router for conditional edges in the agent graph."""
-from typing import Literal
-from langchain_core.messages import BaseMessage
+"""Router for conditional edges in the agent graph.
 
+This module re-exports LangGraph's built-in tools_condition for routing
+decisions in the agent graph.
+"""
+from langgraph.prebuilt import tools_condition
 
-def route_tools(
-    state: dict,
-) -> Literal["tools", "__end__"]:
-    """
-    Route to tools if there are tool calls, otherwise end.
+# Re-export for backwards compatibility
+route_tools = tools_condition
 
-    Args:
-        state: Current graph state
-
-    Returns:
-        Next node to route to
-    """
-    messages = state.get("messages", [])
-    if not messages:
-        return "__end__"
-
-    last_message = messages[-1]
-    if isinstance(last_message, BaseMessage) and last_message.tool_calls:
-        return "tools"
-
-    return "__end__"
+__all__ = ["tools_condition", "route_tools"]

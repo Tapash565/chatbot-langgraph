@@ -6,7 +6,6 @@ on:
     paths:
       - 'backend/**'
       - 'langgraph_backend.py'
-      - 'observability/**'
       - 'requirements.txt'
       - 'pyproject.toml'
       - '.github/workflows/backend.yml'
@@ -15,7 +14,6 @@ on:
     paths:
       - 'backend/**'
       - 'langgraph_backend.py'
-      - 'observability/**'
       - 'requirements.txt'
       - 'pyproject.toml'
 
@@ -40,7 +38,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Check Python syntax
-        run: python -m compileall backend observability langgraph_backend.py
+        run: python -m compileall backend langgraph_backend.py
 
       - name: Verify imports
         run: |
@@ -49,12 +47,12 @@ jobs:
       - name: Run linter
         run: |
           pip install flake8
-          flake8 backend/ observability/ --max-line-length=100 --ignore=E501,W503
+          flake8 backend/ --max-line-length=100 --ignore=E501,W503
 
       - name: Run security scan
         run: |
           pip install bandit
-          bandit -r backend/ observability/ -f json | tee bandit-report.json || true
+          bandit -r backend/ -f json | tee bandit-report.json || true
 
   test:
     runs-on: ubuntu-latest

@@ -1,7 +1,7 @@
 """Pydantic models for thread functionality."""
 from typing import Optional, List
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class ThreadCreate(BaseModel):
@@ -20,8 +20,7 @@ class ThreadResponse(BaseModel):
     name: Optional[str] = None
     last_active: Optional[datetime] = None
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True, serialize_by_alias=False)
 
 
 class ThreadListResponse(BaseModel):

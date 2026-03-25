@@ -1,4 +1,6 @@
 """Chat API routes."""
+import json
+
 from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 
@@ -42,24 +44,20 @@ async def stream_chat(
                 event_type = event.get("type")
 
                 if event_type == "ai":
-                    content = event.get("content", "")
-                    yield f"data: {content}\n\n"
+                    yield f"data: {json.dumps(event)}\n\n"
 
                 elif event_type == "tool_call":
-                    tool_name = event.get("tool_name")
-                    yield f"event: tool_call\ndata: {tool_name}\n\n"
+                    yield f"data: {json.dumps(event)}\n\n"
 
                 elif event_type == "tool":
-                    tool_name = event.get("tool_name")
-                    tool_result = event.get("tool_result")
-                    yield f"event: tool\ndata: {tool_name}|{tool_result}\n\n"
+                    yield f"data: {json.dumps(event)}\n\n"
 
                 elif event_type == "done":
-                    yield "event: done\ndata: \n\n"
+                    yield f"data: {json.dumps(event)}\n\n"
 
         except Exception as e:
             logger.error("chat_stream_error", error=str(e))
-            yield f"event: error\ndata: {str(e)}\n\n"
+            yield f"data: {json.dumps({'type': 'error', 'error': str(e)})}\n\n"
 
     return StreamingResponse(
         generate(),

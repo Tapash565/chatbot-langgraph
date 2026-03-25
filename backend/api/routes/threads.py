@@ -31,16 +31,17 @@ async def create_thread(body: ThreadCreate, request: Request) -> ThreadResponse:
     return ThreadResponse(**thread)
 
 
-@router.put("/threads/{thread_id}")
+@router.put("/threads/{thread_id}", response_model=ThreadResponse)
 async def rename_thread(
     thread_id: str,
     body: ThreadUpdate,
     request: Request,
-) -> dict:
+) -> ThreadResponse:
     """Rename a thread."""
     thread_service = get_thread_service(request)
     await thread_service.rename_thread(thread_id, body.name)
-    return {"thread_id": thread_id, "name": body.name}
+    thread = await thread_service.get_thread(thread_id)
+    return ThreadResponse(**thread)
 
 
 @router.delete("/threads/{thread_id}")
@@ -60,3 +61,14 @@ async def get_thread_document(
     thread_service = get_thread_service(request)
     status = thread_service.get_document_status(thread_id)
     return status
+
+
+@router.get("/threads/{thread_id}/messages")
+async def get_thread_messages(
+    thread_id: str,
+    request: Request,
+) -> dict:
+    """Get normalized message history for a thread."""
+    thread_service = get_thread_service(request)
+    messages = await thread_service.get_thread_messages(thread_id)
+    return {"messages": messages}

@@ -10,15 +10,11 @@ sentence-transformers
 langgraph
 python-dotenv
 
-streamlit
-
 langgraph-checkpoint-sqlite
 
 ddgs
 requests
 faiss-cpu
-
-structlog
 
 pypdf
 

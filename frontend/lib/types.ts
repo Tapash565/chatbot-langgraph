@@ -22,11 +22,10 @@ export interface DocumentMetadata {
 }
 
 export interface PDFUploadResponse {
-  success: boolean;
   filename: string;
   documents: number;
   chunks: number;
-  message: string;
+  thread_id: string;
 }
 
 export interface StreamEvent {
@@ -36,4 +35,8 @@ export interface StreamEvent {
   tool_result?: string;
   tool_args?: Record<string, unknown>;
   error?: string;
+}
+
+export interface ThreadMessagesResponse {
+  messages: Message[];
 }

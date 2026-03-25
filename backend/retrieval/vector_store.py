@@ -20,6 +20,14 @@ class VectorStoreManager:
 
     def get_index_path(self, thread_id: str) -> str:
         """Get the file path for a thread's FAISS index."""
+        # Validate thread_id to prevent path traversal
+        if ".." in thread_id or "/" in thread_id or "\\" in thread_id:
+            raise ValueError("Invalid thread_id: path traversal not allowed")
+
+        # Ensure only safe characters
+        if not thread_id.replace("-", "").replace("_", "").isalnum():
+            raise ValueError("Invalid thread_id: must be alphanumeric with hyphens/underscores")
+
         return os.path.join(self.indices_dir, f"{thread_id}.faiss")
 
     def create_vector_store(

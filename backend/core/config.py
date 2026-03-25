@@ -30,6 +30,12 @@ class Config:
     # Frontend
     NEXT_PUBLIC_API_URL: str = os.getenv("NEXT_PUBLIC_API_URL", "http://localhost:8000/api")
 
+    # CORS
+    CORS_ORIGINS: list[str] = os.getenv(
+        "CORS_ORIGINS",
+        "http://localhost:3000,http://127.0.0.1:3000"
+    ).split(",")
+
     # Paths
     FAISS_INDICES_DIR: str = "faiss_indices"
 
