@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "langgraph-chatbot"
+version = "1.0.0"
+description = "Stateful AI chatbot with LangGraph, FastAPI, and Next.js"
+requires-python = ">=3.11"
+dependencies = [
+    "langchain",
+    "langchain_core",
+    "langchain_groq",
+    "langchain_community",
+    "langchain_huggingface",
+    "langchain_text_splitters",
+    "sentence-transformers",
+    "langgraph",
+    "python-dotenv",
+    "aiosqlite",
+    "langgraph-checkpoint-sqlite",
+    "ddgs",
+    "requests",
+    "faiss-cpu",
+    "pypdf",
+    "fastapi",
+    "uvicorn[standard]",
+    "python-multipart",
+    "sse-starlette",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.flake8]
+max-line-length = 100
+exclude = [".git", "__pycache__", "venv", ".venv", "faiss_indices", ".next", "node_modules"]
+
+[tool.bandit]
+exclude_dirs = ["tests", ".git"]
+severity = "medium"

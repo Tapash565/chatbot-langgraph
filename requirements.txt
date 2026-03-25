@@ -2,10 +2,25 @@ langchain
 langchain_core
 langchain_groq
 langchain_community
+langchain_huggingface
+langchain_text_splitters
+
+sentence-transformers
 
 langgraph
 python-dotenv
-
-streamlit
+aiosqlite
 
 langgraph-checkpoint-sqlite
+
+ddgs
+requests
+faiss-cpu
+
+pypdf
+
+# FastAPI
+fastapi
+uvicorn[standard]
+python-multipart
+sse-starlette

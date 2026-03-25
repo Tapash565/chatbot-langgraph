@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #0d0d0d;
+  --sidebar-bg: #f9f9f9;
+  --sidebar-hover: #ececec;
+  --border: #e5e5e5;
+  --accent: #10a37f;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #212121;
+    --foreground: #ececec;
+    --sidebar-bg: #171717;
+    --sidebar-hover: #2f2f2f;
+    --border: #3d3d3d;
+    --accent: #10a37f;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  overflow: hidden;
+}
+
+/* Custom Scrollbar for ChatGPT feel */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #565656;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #888;
+}
+
+.chat-input-textarea {
+  min-height: 44px;
+  max-height: 200px;
+  resize: none;
+}

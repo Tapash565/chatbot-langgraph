@@ -1,21 +1,24 @@
 # LangGraph Chatbot
 
-A stateful conversational AI application built with [LangGraph](https://langchain-ai.github.io/langgraph/), [LangChain](https://python.langchain.com/), and [Streamlit](https://streamlit.io/). This chatbot features persistent memory, automatic conversation naming, and activity-based sorting.
+A stateful conversational AI application built with [LangGraph](https://langchain-ai.github.io/langgraph/), [FastAPI](https://fastapi.tiangolo.com/), and [Next.js](https://nextjs.org/). This version uses one frontend and one backend contract for chat, threads, and document upload.
 
 ## Features
 *   **Persistent Conversations**: Chats are stored in a local SQLite database (`chatbot.db`).
 *   **Auto-Naming**: Conversations are automatically titled by an LLM based on context.
 *   **Activity Sorting**: The conversation list is sorted by the most recent activity.
 *   **State Management**: Uses `LangGraph` checkpoints to maintain conversation state.
-*   **Chat Management**: Ability to create new chats and delete all chat history.
+*   **Single Frontend**: Next.js is the supported UI.
+*   **Frontend/Backend Compatibility**: The web client and API share aligned routes for SSE chat streaming, thread history, and PDF upload.
 
 ## File Structure
-```
+```text
 chatbot-langgraph/
+├── backend/                # FastAPI app, LangGraph agent, and services
+├── frontend/               # Next.js frontend
 ├── chatbot.db              # SQLite database for storing thread state and metadata
-├── langgraph_backend.py    # Backend logic: LangGraph definition, DB operations, Title generation
+├── faiss_indices/          # Vector indices for document retrieval
+├── pyproject.toml          # Python project metadata
 ├── requirements.txt        # Python dependencies
-├── streamlit_frontend.py   # Streamlit UI application
 └── .gitignore              # Git ignore rules
 ```
 
@@ -42,16 +45,24 @@ chatbot-langgraph/
     ```
 
 4.  **Configuration**:
-    Create a `.env` file in the root directory and add your API keys (e.g., for Groq or OpenAI):
+    Create a `.env` file in the root directory and add your API keys:
     ```env
     GROQ_API_KEY=your_api_key_here
+    NEXT_PUBLIC_API_URL=http://localhost:8000/api
     ```
 
 ## Usage
 
-Run the Streamlit application:
+1. Start the backend:
 ```bash
-streamlit run streamlit_frontend.py
+uvicorn backend.main:app --reload
 ```
 
-Opens in your browser at `http://localhost:8501`.
+2. Start the frontend:
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open `http://localhost:3000`.
